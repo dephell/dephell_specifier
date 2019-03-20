@@ -4,6 +4,8 @@ Work with version specifiers.
 
 ## Installation
 
+Install from [PyPI](https://pypi.org/project/dephell-specifier/):
+
 ```bash
 python3 -m pip install --user dephell_specifier
 ```
