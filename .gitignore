@@ -1,0 +1,13 @@
+.hypothesis/
+.pytest_cache/
+__pycache__/
+*.py[cod]
+
+*.egg-info
+build/
+dist/
+MANIFEST
+pip-wheel-metadata/
+
+setup.py
+README.rst
