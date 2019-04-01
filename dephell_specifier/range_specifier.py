@@ -55,10 +55,20 @@ class RangeSpecifier:
                 parts = version.release + (0, 0)
                 parts = tuple(map(str, parts))
                 left = '.'.join(parts[:3])
-                if constr[0] == '^':    # ^1.2.3 := >=1.2.3 <2.0.0
+
+                if constr[:2] == '~=':    # ~=1.2 := >=1.2 <2.0;  ~=1.2.2 := >=1.2.2 <1.3.0
+                    if len(version.release) == 1:
+                        msg = '`~=` MUST NOT be used with a single segment version: '
+                        raise ValueError(msg + str(version))
+                    # https://www.python.org/dev/peps/pep-0440/#compatible-release
+                    right = '.'.join(map(str, version.release[:3][:-1])) + '.*'
+                elif constr[0] == '^':    # ^1.2.3 := >=1.2.3 <2.0.0
+                    # https://www.npmjs.com/package/semver#caret-ranges-123-025-004
                     right = '.'.join([parts[0], '*'])
                 elif constr[0] == '~':  # ~1.2.3 := >=1.2.3 <1.3.0
+                    # https://www.npmjs.com/package/semver#tilde-ranges-123-12-1
                     right = '.'.join([parts[0], parts[1], '*'])
+
                 result.add(Specifier('>=' + left))
                 result.add(Specifier('==' + right))
                 continue
