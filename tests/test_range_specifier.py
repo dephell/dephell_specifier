@@ -233,3 +233,16 @@ def test_or(version, ok):
 ])
 def test_to_marker(spec, marker):
     assert RangeSpecifier(spec).to_marker('m') == marker
+
+
+@pytest.mark.parametrize('left, right, expected', [
+    ('>=2.7', '<=3.4', '>=2.7,<=3.4'),
+    ('>=2.7', '>=3.4,<=3.7', '>=2.7,>=3.4,<=3.7'),
+    ('==2.7 || >=3.4', '<=3.7', '==2.7,<=3.7 || >=3.4,<=3.7'),
+    ('==2.7 || >=3.4', '!=3.6,<=3.7', '==2.7,!=3.6,,<=3.7 || >=3.4,!=3.6,,<=3.7'),
+    ('<=3.7', '==2.7 || >=3.4', '==2.7,<=3.7 || >=3.4,<=3.7'),
+    ('<=3.7 || !=3.6', '==2.7 || >=3.4', '<=3.7,==2.7 || <=3.7,>=3.4 || !=3.6,==2.7 || !=3.6,>=3.4'),
+])
+def test_merging(left, right, expected):
+    spec = RangeSpecifier(left) + RangeSpecifier(right)
+    assert spec == RangeSpecifier(expected)

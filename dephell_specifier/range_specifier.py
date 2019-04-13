@@ -143,20 +143,39 @@ class RangeSpecifier:
 
         # and + or
         if self.join_type == JoinTypes.AND:
-            self._specs.add(other)
+            and_specs = self._specs
+            or_specs = other._specs
+            new_specs = set()
+            for or_spec in or_specs:
+                new = type(self)()
+                new._specs = {or_spec} | and_specs
+                new_specs.add(new)
+            self._specs = new_specs
+            self.join_type = JoinTypes.OR
             return True
 
         # or + and
         if other.join_type == JoinTypes.AND:
-            new = self.copy()
-            self.join_type = JoinTypes.AND
-            self._specs = other._specs + {new}
+            and_specs = other._specs
+            or_specs = self._specs
+            new_specs = set()
+            for or_spec in or_specs:
+                new = type(self)()
+                new._specs = {or_spec} | and_specs
+                new_specs.add(new)
+            self._specs = new_specs
             return True
 
         # or + or
-        new = type(self)()
-        self.join_type = JoinTypes.AND
-        self._specs = {new, other}
+        left_specs = self._specs
+        right_specs = other._specs
+        new_specs = set()
+        for left_spec in left_specs:
+            for right_spec in right_specs:
+                new = type(self)()
+                new._specs = {left_spec, right_spec}
+                new_specs.add(new)
+        self._specs = new_specs
         return True
 
     def __contains__(self, release) -> bool:
