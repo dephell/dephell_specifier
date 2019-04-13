@@ -5,6 +5,7 @@ python:
   - "3.6"
   - "3.7-dev"
 before_install:
+  - pip install appdirs
   - curl https://raw.githubusercontent.com/dephell/dephell/master/install.py | python
 install:
   - dephell deps install --env=pytest
@@ -14,8 +15,16 @@ script:
 
 matrix:
   include:
-    - python: "3.7-dev"
+    - name: "flake8"
+      python: "3.7-dev"
       install:
         - dephell deps install --env=flake8
       script:
         - dephell venv run --env=flake8
+
+    - name: "typing"
+      python: "3.7-dev"
+      install:
+        - dephell package install --env=typing mypy
+      script:
+        - dephell venv run --env=typing
