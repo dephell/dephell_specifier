@@ -1,0 +1,21 @@
+language: python
+
+python:
+  - "3.5"
+  - "3.6"
+  - "3.7-dev"
+before_install:
+  - curl https://raw.githubusercontent.com/dephell/dephell/master/install.py | python
+install:
+  - dephell deps install --env=pytest
+  - dephell package install --env=pytest pytest
+script:
+  - dephell venv run --env=pytest
+
+matrix:
+  include:
+    - python: "3.7-dev"
+      install:
+        - dephell deps install --env=flake8
+      script:
+        - dephell venv run --env=flake8
