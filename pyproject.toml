@@ -4,7 +4,7 @@ to = {format = "setuppy", path = "setup.py"}
 
 [tool.poetry]
 name = "dephell_markers"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["orsinium"]
 description = "Work with version specifiers."
 readme = "README.md"
