@@ -16,8 +16,8 @@ tests = ["tests", "README.md"]
 command = "pytest -x tests/"
 
 [tool.poetry]
-name = "dephell_markers"
-version = "0.1.1"
+name = "dephell_specifier"
+version = "0.1.3"
 authors = ["orsinium"]
 description = "Work with version specifiers."
 readme = "README.md"
