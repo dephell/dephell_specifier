@@ -1,30 +1,32 @@
 language: python
 
-python:
-  - "3.5"
-  - "3.6"
-  - "3.7-dev"
 before_install:
-  - pip install appdirs
-  - curl https://raw.githubusercontent.com/dephell/dephell/master/install.py | python
+  # show a little bit more information about environment
+  - sudo apt-get install -y tree
+  - env
+  - tree
+  # install DepHell
+  # https://github.com/travis-ci/travis-ci/issues/8589
+  - curl https://raw.githubusercontent.com/dephell/dephell/master/install.py | /opt/python/3.6/bin/python
+  - dephell inspect self
 install:
-  - dephell deps install --env=pytest
-  - dephell package install --env=pytest pytest
+  - dephell venv create --env=$ENV --python="/opt/python/$TRAVIS_PYTHON_VERSION/bin/python"
+  - dephell deps install --env=$ENV
 script:
-  - dephell venv run --env=pytest
+  - dephell venv run --env=$ENV
 
 matrix:
   include:
-    - name: "flake8"
-      python: "3.7-dev"
-      install:
-        - dephell deps install --env=flake8
-      script:
-        - dephell venv run --env=flake8
+    - python: "3.5"
+      env: ENV=pytest
+    - python: "3.6"
+      env: ENV=pytest
+    - python: "3.7-dev"
+      env: ENV=pytest
+    - python: "pypy3.5"
+      env: ENV=pytest
 
-    - name: "typing"
-      python: "3.7-dev"
-      install:
-        - dephell package install --env=typing mypy
-      script:
-        - dephell venv run --env=typing
+    - python: "3.6"
+      env: ENV=flake8
+    - python: "3.6"
+      env: ENV=typing
