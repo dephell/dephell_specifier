@@ -246,3 +246,14 @@ def test_to_marker(spec, marker):
 def test_merging(left, right, expected):
     spec = RangeSpecifier(left) + RangeSpecifier(right)
     assert spec == RangeSpecifier(expected)
+
+
+@pytest.mark.parametrize('spec, expected', [
+    ('>=2.7',                   '>=2.7'),
+    ('>=2.7,<3.4',              '>=2.7,<3.4'),
+    ('==2.7.* || >=3.4',        '>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*'),
+    ('==2.7.* || >=3.4,<3.8',   '>=2.7,<3.8,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*'),
+])
+def test_peppify_python(spec, expected):
+    new = RangeSpecifier(spec).peppify()
+    assert str(new) == str(RangeSpecifier(expected))
