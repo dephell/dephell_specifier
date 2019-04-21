@@ -1,6 +1,6 @@
 # external
 from packaging.specifiers import InvalidSpecifier
-from packaging.version import LegacyVersion, parse
+from packaging.version import LegacyVersion, parse, Version
 
 # app
 from .constants import PYTHONS, JoinTypes
@@ -102,12 +102,57 @@ class RangeSpecifier:
         new.join_type = self.join_type
         return new
 
+    def peppify(self) -> 'RangeSpecifier':
+        """Returns python specifier without `||`
+        """
+        if self.join_type == JoinTypes.AND:
+            return self
+        pythons = sorted(Version(python) for python in PYTHONS)
+
+        # get left boundary
+        left = None
+        for python in pythons:
+            if python in self:
+                left = python
+                break
+
+        # get right boundary
+        right = None
+        excluded = []
+        for python in pythons:
+            if python in self:
+                right = python
+            elif left is None or python > left:
+                excluded.append(python)
+        if right is not None:
+            right = (pythons + [None])[pythons.index(right) + 1]
+
+        # get excluded intervals
+        if right is not None:
+            excluded = [python for python in excluded if python < right]
+        excluded = ','.join('!={}.*'.format(python) for python in excluded)
+        if excluded:
+            excluded = ',' + excluded
+
+        # combine it into specifier
+        if left is None and right is None:
+            return type(self)(excluded[1:])
+        if left is None:
+            return type(self)('<' + str(right) + excluded)
+        if right is None:
+            return type(self)('>=' + str(left) + excluded)
+        return type(self)('>={},<{}'.format(left, right) + excluded)
+
+    # properties
+
     @property
     def python_compat(self) -> bool:
         for version in PYTHONS:
             if version in self:
                 return True
         return False
+
+    # magic methods
 
     def __add__(self, other):
         new = self.copy()
