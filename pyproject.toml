@@ -17,7 +17,7 @@ command = "pytest -x tests/"
 
 [tool.poetry]
 name = "dephell_specifier"
-version = "0.1.6"
+version = "0.1.7"
 authors = ["orsinium"]
 description = "Work with version specifiers."
 readme = "README.md"
