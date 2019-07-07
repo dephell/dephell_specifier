@@ -1,24 +1,18 @@
 import re
-from typing import Set
+from typing import Set, List
 
 # external
 from packaging.specifiers import InvalidSpecifier
 from packaging.version import LegacyVersion, parse, Version
 
 # app
-from .constants import PYTHONS, JoinTypes
+from .constants import PYTHONS, JoinTypes, OPERATOR_SYMBOLS
 from .git_specifier import GitSpecifier
 from .specifier import Specifier
 
 
-def _split_by_sequences(spec, *seqs):
-    result = [spec]
-    for seq in seqs:
-        result = sum([spec.split(seq) for spec in result], [])
-    return result
-
-
 REX_MAVEN_INTERVAL = re.compile(r'([\]\)])\,([\[\(])')
+REX_TRIM_OPERATOR = re.compile(r'([{}])\s+'.format(re.escape(OPERATOR_SYMBOLS)))
 
 
 class RangeSpecifier:
@@ -49,18 +43,12 @@ class RangeSpecifier:
 
     @classmethod
     def _parse(cls, spec) -> Set[Specifier]:
-        if not isinstance(spec, (list, tuple)):
-            spec = str(spec).split(',')
+        spec = cls._split_specifier(spec)
         result = set()
         for constr in spec:
-            constr = constr.strip()
-            if constr in ('', '*'):
+            constr = cls._clean_constraint(constr)
+            if not constr:
                 continue
-            constr = constr.replace('.x', '.*')
-            constr = constr.replace('.X', '.*')
-
-            # https://docs.npmjs.com/misc/semver#advanced-range-syntax
-
             # parse npm's version range (`1.2.3 - 2.3.0`)
             if ' - ' in constr:
                 if '.*' in constr:
@@ -69,7 +57,10 @@ class RangeSpecifier:
                 result.add(Specifier('>=' + left))
                 result.add(Specifier('<=' + right))
                 continue
-
+            # parse mixed stars and operators like `<=1.2.*`
+            if constr[0] in '<>' and '.*' in constr:
+                result.add(cls._parse_star_and_operator(constr))
+                continue
             # parse npm-style semver specifiers
             if constr[0] in '~^':
                 result.update(cls._parse_npm(constr))
@@ -78,10 +69,59 @@ class RangeSpecifier:
             if constr[0] in '[(' or constr[-1] in ')]':
                 result.update(cls._parse_maven(constr))
                 continue
-
             # parse classic python specifier
             result.add(Specifier(constr))
         return result
+
+    @staticmethod
+    def _split_specifier(spec) -> List[str]:
+        if isinstance(spec, (list, tuple)):
+            return list(spec)
+        spec = str(spec)
+
+        # pep-style comma-separated
+        if ',' in spec:
+            return spec.split(',')
+
+        # single specifier
+        spec = REX_TRIM_OPERATOR.sub(r'\1', spec)
+        if ' ' not in spec:
+            return [spec]
+
+        # npm-style space-separated
+        spec = spec.replace(' - ', '|').split()
+        spec = [constr.replace('|', ' - ') for constr in spec]
+        return spec
+
+    @staticmethod
+    def _clean_constraint(constr: str) -> str:
+        constr = constr.strip()
+        if constr in ('', '*'):
+            return ''
+        constr = constr.replace('.x', '.*')
+        constr = constr.replace('.X', '.*')
+        constr = constr.replace('.*.*', '.*')
+        if constr.lstrip(OPERATOR_SYMBOLS).lower() in ('x', '*'):
+            return ''
+
+        # add operator to constraint without operator
+        if ' - ' in constr:
+            return constr
+        if constr[0] not in OPERATOR_SYMBOLS and constr[-1] not in OPERATOR_SYMBOLS:
+            constr = '==' + constr
+        # replace `=` operator by `==`
+        if len(constr) > 1 and constr[0] == '=' and constr[1] not in OPERATOR_SYMBOLS:
+            constr = '==' + constr[1:]
+        return constr
+
+    @staticmethod
+    def _parse_star_and_operator(constr: str) -> Specifier:
+        if constr[:2] in {'<', '>', '>='}:
+            return Specifier(constr.replace('.*', '.0'))
+
+        version = parse(constr.lstrip(OPERATOR_SYMBOLS).rstrip('.*'))
+        parts = version.release[:-1] + (version.release[-1] + 1, )
+        return Specifier(constr[:2] + '.'.join(map(str, parts)))
 
     @staticmethod
     def _parse_maven(constr: str) -> Set[Specifier]:
@@ -101,7 +141,7 @@ class RangeSpecifier:
 
     @staticmethod
     def _parse_npm(constr: str) -> Set[Specifier]:
-        version = parse(constr.lstrip('~^=>').replace('.*', '.0'))
+        version = parse(constr.lstrip(OPERATOR_SYMBOLS).replace('.*', '.0'))
         if isinstance(version, LegacyVersion):
             raise InvalidSpecifier(constr)
         parts = version.release + (0, 0)
@@ -119,7 +159,10 @@ class RangeSpecifier:
         elif constr[0] == '~':  # ~1.2.3 (or ~>1.2.3 for ruby) := >=1.2.3 <1.3.0
             # https://www.npmjs.com/package/semver#tilde-ranges-123-12-1
             # https://thoughtbot.com/blog/rubys-pessimistic-operator
-            right = '.'.join([parts[0], parts[1], '*'])
+            if len(version.release) == 1:
+                right = '{}.*'.format(version.release[0])
+            else:
+                right = '.'.join([parts[0], parts[1], '*'])
 
         left = '.'.join(parts[:3])
         return {Specifier('>=' + left), Specifier('==' + right)}
