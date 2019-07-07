@@ -1,5 +1,5 @@
 import re
-from typing import Set
+from typing import Set, List
 
 # external
 from packaging.specifiers import InvalidSpecifier
@@ -12,6 +12,7 @@ from .specifier import Specifier
 
 
 REX_MAVEN_INTERVAL = re.compile(r'([\]\)])\,([\[\(])')
+REX_TRIM_OPERATOR = re.compile(r'([{}])\s+'.format(re.escape(OPERATOR_SYMBOLS)))
 
 
 class RangeSpecifier:
@@ -42,8 +43,7 @@ class RangeSpecifier:
 
     @classmethod
     def _parse(cls, spec) -> Set[Specifier]:
-        if not isinstance(spec, (list, tuple)):
-            spec = str(spec).split(',')
+        spec = cls._split_specifier(spec)
         result = set()
         for constr in spec:
             constr = cls._clean_constraint(constr)
@@ -72,6 +72,26 @@ class RangeSpecifier:
             # parse classic python specifier
             result.add(Specifier(constr))
         return result
+
+    @staticmethod
+    def _split_specifier(spec) -> List[str]:
+        if isinstance(spec, (list, tuple)):
+            return spec
+        spec = str(spec)
+
+        # pep-style comma-separated
+        if ',' in spec:
+            return spec.split(',')
+
+        # single specifier
+        spec = REX_TRIM_OPERATOR.sub(r'\1', spec)
+        if ' ' not in spec:
+            return [spec]
+
+        # npm-style space-separated
+        spec = spec.replace(' - ', '|').split()
+        spec = [constr.replace('|', ' - ') for constr in spec]
+        return spec
 
     @staticmethod
     def _clean_constraint(constr: str) -> str:
