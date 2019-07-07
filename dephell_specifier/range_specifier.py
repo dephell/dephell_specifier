@@ -67,6 +67,7 @@ class RangeSpecifier:
             # parse mixed stars and operators like `<=1.2.*`
             if constr[0] in '<>' and '.*' in constr:
                 result.add(cls._parse_star_and_operator(constr))
+                continue
             # parse npm-style semver specifiers
             if constr[0] in '~^':
                 result.update(cls._parse_npm(constr))
@@ -100,14 +101,12 @@ class RangeSpecifier:
 
     @staticmethod
     def _parse_star_and_operator(constr: str) -> Set[Specifier]:
-        if constr[1] == '=':
-            # inclusive
-            version = parse(constr.lstrip(OPERATOR_SYMBOLS).rstrip('.*'))
-            parts = version.release[:-1] + (version.release[-1] + 1, )
-            return Specifier(constr[:2] + '.'.join(map(str, parts)))
-        else:
-            # exclusive
+        if constr[:2] in {'<', '>', '>='}:
             return Specifier(constr.replace('.*', '.0'))
+
+        version = parse(constr.lstrip(OPERATOR_SYMBOLS).rstrip('.*'))
+        parts = version.release[:-1] + (version.release[-1] + 1, )
+        return Specifier(constr[:2] + '.'.join(map(str, parts)))
 
     @staticmethod
     def _parse_maven(constr: str) -> Set[Specifier]:
