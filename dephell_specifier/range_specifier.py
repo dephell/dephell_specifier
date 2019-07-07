@@ -55,10 +55,30 @@ class RangeSpecifier:
             if constr[0] in '~^':
                 result.update(cls._parse_npm(constr))
                 continue
+            # parse maven-style interval specifiers
+            if constr[0] in '[(' or constr[-1] in ')]':
+                result.update(cls._parse_maven(constr))
+                continue
 
             # parse classic python specifier
             result.add(Specifier(constr))
         return result
+
+    @staticmethod
+    def _parse_maven(constr: str) -> Set[Specifier]:
+        if constr in '[]()':
+            return set()
+        if constr[0] == '[' and constr[-1] == ']':
+            return {Specifier('==' + constr[1:-1])}
+        if constr[0] == '[':
+            return {Specifier('>=' + constr[1:])}
+        if constr[0] == '(':
+            return {Specifier('>' + constr[1:])}
+        if constr[-1] == ']':
+            return {Specifier('<=' + constr[:-1])}
+        if constr[-1] == ')':
+            return {Specifier('<' + constr[:-1])}
+        raise ValueError('non maven constraint: {}'.format(constr))
 
     @staticmethod
     def _parse_npm(constr: str) -> Set[Specifier]:
