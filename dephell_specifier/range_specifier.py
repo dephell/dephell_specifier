@@ -40,6 +40,7 @@ class RangeSpecifier:
 
             # https://docs.npmjs.com/misc/semver#advanced-range-syntax
 
+            # parse npm's version range (`1.2.3 - 2.3.0`)
             if ' - ' in constr:
                 if '.*' in constr:
                     raise InvalidSpecifier('cannot mix ranges and starred notation')
@@ -48,13 +49,13 @@ class RangeSpecifier:
                 result.add(Specifier('<=' + right))
                 continue
 
+            # parse non-python specifiers
             if constr[0] in '~^':
-                version = parse(constr.lstrip('~^=').replace('.*', '.0'))
+                version = parse(constr.lstrip('~^=>').replace('.*', '.0'))
                 if isinstance(version, LegacyVersion):
                     raise InvalidSpecifier(constr)
                 parts = version.release + (0, 0)
                 parts = tuple(map(str, parts))
-                left = '.'.join(parts[:3])
 
                 if constr[:2] == '~=':    # ~=1.2 := >=1.2 <2.0;  ~=1.2.2 := >=1.2.2 <1.3.0
                     if len(version.release) == 1:
@@ -65,14 +66,17 @@ class RangeSpecifier:
                 elif constr[0] == '^':    # ^1.2.3 := >=1.2.3 <2.0.0
                     # https://www.npmjs.com/package/semver#caret-ranges-123-025-004
                     right = '.'.join([parts[0], '*'])
-                elif constr[0] == '~':  # ~1.2.3 := >=1.2.3 <1.3.0
+                elif constr[0] == '~':  # ~1.2.3 (or ~>1.2.3 for ruby) := >=1.2.3 <1.3.0
                     # https://www.npmjs.com/package/semver#tilde-ranges-123-12-1
+                    # https://thoughtbot.com/blog/rubys-pessimistic-operator
                     right = '.'.join([parts[0], parts[1], '*'])
 
+                left = '.'.join(parts[:3])
                 result.add(Specifier('>=' + left))
                 result.add(Specifier('==' + right))
                 continue
 
+            # parse classic python specifier
             result.add(Specifier(constr))
         return result
 
