@@ -165,6 +165,10 @@ def test_tilda(specv, version, ok):
     spec = RangeSpecifier('~' + specv)
     assert (version in spec) is ok
 
+    # Ruby's pessimistic operator (~>) has the same behavior
+    spec = RangeSpecifier('~>' + specv)
+    assert (version in spec) is ok
+
 
 # ~=1.2.3 := >=1.2.3 <1.3.0
 # ~=1.2 := >=1.2 <2.0
