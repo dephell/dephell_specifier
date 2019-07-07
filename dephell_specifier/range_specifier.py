@@ -31,7 +31,7 @@ class RangeSpecifier:
             return
 
         # split `(,1),(2,)` on `(,1)` and `(2,)`
-        subspecs = REX_MAVEN_INTERVAL.sub(r'\1|\2', spec).split('|')
+        subspecs = REX_MAVEN_INTERVAL.sub(r'\1|\2', str(spec)).split('|')
         if len(subspecs) > 1:
             self._specs = {type(self)(subspec) for subspec in subspecs}
             self.join_type = JoinTypes.OR

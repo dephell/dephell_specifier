@@ -12,6 +12,7 @@ from dephell_specifier import RangeSpecifier
     ('===', [0, 1, 0]),
     ('>=',  [0, 1, 1]),
     ('>',   [0, 0, 1]),
+    ('!=',   [1, 0, 1]),
 ])
 def test_simple(operator, mask):
     versions = ('1.2.3', '1.3.2', '1.4.1')
