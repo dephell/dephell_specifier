@@ -11,13 +11,6 @@ from .git_specifier import GitSpecifier
 from .specifier import Specifier
 
 
-def _split_by_sequences(spec, *seqs):
-    result = [spec]
-    for seq in seqs:
-        result = sum([spec.split(seq) for spec in result], [])
-    return result
-
-
 REX_MAVEN_INTERVAL = re.compile(r'([\]\)])\,([\[\(])')
 
 
@@ -87,16 +80,18 @@ class RangeSpecifier:
             return ''
         constr = constr.replace('.x', '.*')
         constr = constr.replace('.X', '.*')
+        constr = constr.replace('.*.*', '.*')
+        if constr.lstrip(OPERATOR_SYMBOLS).lower() in ('x', '*'):
+            return ''
+
         # add operator to constraint without operator
+        if ' - ' in constr:
+            return constr
         if constr[0] not in OPERATOR_SYMBOLS and constr[-1] not in OPERATOR_SYMBOLS:
             constr = '==' + constr
         # replace `=` operator by `==`
         if len(constr) > 1 and constr[0] == '=' and constr[1] not in OPERATOR_SYMBOLS:
             constr = '==' + constr[1:]
-        # replace duplicate stars and x's by stars
-        constr = constr.replace('.*.*', '.*')
-        if constr.lstrip(OPERATOR_SYMBOLS).lower() in ('x', '*'):
-            return ''
         return constr
 
     @staticmethod
