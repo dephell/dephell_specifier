@@ -261,3 +261,28 @@ def test_merging(left, right, expected):
 def test_peppify_python(spec, expected):
     new = RangeSpecifier(spec).peppify()
     assert str(new) == str(RangeSpecifier(expected))
+
+
+@pytest.mark.parametrize('spec, expected', [
+    ('[1.0]',       '==1.0'),
+
+    # closed intervals
+    ('[1.2,1.3]',   '>=1.2,<=1.3'),
+    ('[1.0,2.0)',   '>=1.0,<2.0'),
+    ('(1.0,2.0]',   '>1.0,<=2.0'),
+    ('(1.0,2.0)',   '>1.0,<2.0'),
+
+    # open intervals
+    ('[1.5,)',      '>=1.5'),
+    ('(,1.5]',      '<=1.5'),
+    ('(1.5,)',      '>1.5'),
+    ('(,1.5)',      '<1.5'),
+
+    # or-chaining of intervals
+    ('(,1.0],[1.2,)', '<=1.0 || >=1.2'),
+    ('(,1.0),[1.2,)', '<1.0 || >=1.2'),
+    ('(,1.0],(1.2,)', '<=1.0 || >1.2'),
+    ('(,1.0),(1.2,)', '<1.0 || >1.2'),
+])
+def test_intervals(spec, expected):
+    assert str(RangeSpecifier(spec)) == str(RangeSpecifier(expected))

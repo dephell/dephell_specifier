@@ -1,3 +1,6 @@
+import re
+from typing import Set
+
 # external
 from packaging.specifiers import InvalidSpecifier
 from packaging.version import LegacyVersion, parse, Version
@@ -8,6 +11,16 @@ from .git_specifier import GitSpecifier
 from .specifier import Specifier
 
 
+def _split_by_sequences(spec, *seqs):
+    result = [spec]
+    for seq in seqs:
+        result = sum([spec.split(seq) for spec in result], [])
+    return result
+
+
+REX_MAVEN_INTERVAL = re.compile(r'([\]\)])\,([\[\(])')
+
+
 class RangeSpecifier:
 
     def __init__(self, spec=None):
@@ -16,7 +29,15 @@ class RangeSpecifier:
             self.join_type = JoinTypes.AND
             return
 
+        # split `>2 || <1` on `>2` and `<1`
         subspecs = str(spec).split('||')
+        if len(subspecs) > 1:
+            self._specs = {type(self)(subspec) for subspec in subspecs}
+            self.join_type = JoinTypes.OR
+            return
+
+        # split `(,1),(2,)` on `(,1)` and `(2,)`
+        subspecs = REX_MAVEN_INTERVAL.sub(r'\1|\2', spec).split('|')
         if len(subspecs) > 1:
             self._specs = {type(self)(subspec) for subspec in subspecs}
             self.join_type = JoinTypes.OR
@@ -26,8 +47,8 @@ class RangeSpecifier:
         self.join_type = JoinTypes.AND
         return
 
-    @staticmethod
-    def _parse(spec) -> set:
+    @classmethod
+    def _parse(cls, spec) -> Set[Specifier]:
         if not isinstance(spec, (list, tuple)):
             spec = str(spec).split(',')
         result = set()
@@ -49,36 +70,59 @@ class RangeSpecifier:
                 result.add(Specifier('<=' + right))
                 continue
 
-            # parse non-python specifiers
+            # parse npm-style semver specifiers
             if constr[0] in '~^':
-                version = parse(constr.lstrip('~^=>').replace('.*', '.0'))
-                if isinstance(version, LegacyVersion):
-                    raise InvalidSpecifier(constr)
-                parts = version.release + (0, 0)
-                parts = tuple(map(str, parts))
-
-                if constr[:2] == '~=':    # ~=1.2 := >=1.2 <2.0;  ~=1.2.2 := >=1.2.2 <1.3.0
-                    if len(version.release) == 1:
-                        msg = '`~=` MUST NOT be used with a single segment version: '
-                        raise ValueError(msg + str(version))
-                    # https://www.python.org/dev/peps/pep-0440/#compatible-release
-                    right = '.'.join(map(str, version.release[:3][:-1])) + '.*'
-                elif constr[0] == '^':    # ^1.2.3 := >=1.2.3 <2.0.0
-                    # https://www.npmjs.com/package/semver#caret-ranges-123-025-004
-                    right = '.'.join([parts[0], '*'])
-                elif constr[0] == '~':  # ~1.2.3 (or ~>1.2.3 for ruby) := >=1.2.3 <1.3.0
-                    # https://www.npmjs.com/package/semver#tilde-ranges-123-12-1
-                    # https://thoughtbot.com/blog/rubys-pessimistic-operator
-                    right = '.'.join([parts[0], parts[1], '*'])
-
-                left = '.'.join(parts[:3])
-                result.add(Specifier('>=' + left))
-                result.add(Specifier('==' + right))
+                result.update(cls._parse_npm(constr))
+                continue
+            # parse maven-style interval specifiers
+            if constr[0] in '[(' or constr[-1] in ')]':
+                result.update(cls._parse_maven(constr))
                 continue
 
             # parse classic python specifier
             result.add(Specifier(constr))
         return result
+
+    @staticmethod
+    def _parse_maven(constr: str) -> Set[Specifier]:
+        if constr in '[]()':
+            return set()
+        if constr[0] == '[' and constr[-1] == ']':
+            return {Specifier('==' + constr[1:-1])}
+        if constr[0] == '[':
+            return {Specifier('>=' + constr[1:])}
+        if constr[0] == '(':
+            return {Specifier('>' + constr[1:])}
+        if constr[-1] == ']':
+            return {Specifier('<=' + constr[:-1])}
+        if constr[-1] == ')':
+            return {Specifier('<' + constr[:-1])}
+        raise ValueError('non maven constraint: {}'.format(constr))
+
+    @staticmethod
+    def _parse_npm(constr: str) -> Set[Specifier]:
+        version = parse(constr.lstrip('~^=>').replace('.*', '.0'))
+        if isinstance(version, LegacyVersion):
+            raise InvalidSpecifier(constr)
+        parts = version.release + (0, 0)
+        parts = tuple(map(str, parts))
+
+        if constr[:2] == '~=':    # ~=1.2 := >=1.2 <2.0;  ~=1.2.2 := >=1.2.2 <1.3.0
+            if len(version.release) == 1:
+                msg = '`~=` MUST NOT be used with a single segment version: '
+                raise ValueError(msg + str(version))
+            # https://www.python.org/dev/peps/pep-0440/#compatible-release
+            right = '.'.join(map(str, version.release[:3][:-1])) + '.*'
+        elif constr[0] == '^':    # ^1.2.3 := >=1.2.3 <2.0.0
+            # https://www.npmjs.com/package/semver#caret-ranges-123-025-004
+            right = '.'.join([parts[0], '*'])
+        elif constr[0] == '~':  # ~1.2.3 (or ~>1.2.3 for ruby) := >=1.2.3 <1.3.0
+            # https://www.npmjs.com/package/semver#tilde-ranges-123-12-1
+            # https://thoughtbot.com/blog/rubys-pessimistic-operator
+            right = '.'.join([parts[0], parts[1], '*'])
+
+        left = '.'.join(parts[:3])
+        return {Specifier('>=' + left), Specifier('==' + right)}
 
     def attach_time(self, releases) -> bool:
         """Attach time to all specifiers if possible
