@@ -1,9 +1,10 @@
 # built-in
 import operator
+from typing import Any, Callable, Optional, Union
 
 # external
 from packaging import specifiers
-from packaging.version import LegacyVersion, parse
+from packaging.version import LegacyVersion, Version, parse
 
 # app
 from .utils import cached_property
@@ -68,7 +69,7 @@ class Specifier:
                     return True
         return False
 
-    def _check_version(self, version):
+    def _check_version(self, version) -> bool:
         """
         https://www.python.org/dev/peps/pep-0440/
         """
@@ -100,16 +101,20 @@ class Specifier:
         return self._spec.operator
 
     @property
-    def operation(self):
+    def operation(self) -> Optional[Callable[[Any, Any], bool]]:
         return OPERATIONS.get(self._spec.operator)
 
+    @property
+    def raw_version(self) -> str:
+        return self._spec.version
+
     @cached_property
-    def version(self):
-        return parse(self._spec.version)
+    def version(self) -> Union[Version, LegacyVersion]:
+        return parse(self.raw_version)
 
     # magic methods
 
-    def __contains__(self, release):
+    def __contains__(self, release) -> bool:
         # compare version
         # check that this is Release without imports
         if not hasattr(release, 'time'):
@@ -125,10 +130,10 @@ class Specifier:
         # compare release by version
         return self._check_version(version=release.version)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self._spec)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '{name}({spec})'.format(
             name=self.__class__.__name__,
             spec=str(self._spec),
@@ -165,11 +170,11 @@ class Specifier:
 
         return NotImplemented
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         return self.version < other.version
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return self.version == other.version and self.operator == other.operator
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self._spec)
