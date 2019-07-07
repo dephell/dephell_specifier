@@ -277,6 +277,12 @@ def test_peppify_python(spec, expected):
     ('(,1.5]',      '<=1.5'),
     ('(1.5,)',      '>1.5'),
     ('(,1.5)',      '<1.5'),
+
+    # or-chaining of intervals
+    ('(,1.0],[1.2,)', '<=1.0 || >=1.2'),
+    ('(,1.0),[1.2,)', '<1.0 || >=1.2'),
+    ('(,1.0],(1.2,)', '<=1.0 || >1.2'),
+    ('(,1.0),(1.2,)', '<1.0 || >1.2'),
 ])
 def test_intervals(spec, expected):
     assert str(RangeSpecifier(spec)) == str(RangeSpecifier(expected))

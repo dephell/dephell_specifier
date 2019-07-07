@@ -1,3 +1,4 @@
+import re
 from typing import Set
 
 # external
@@ -10,6 +11,16 @@ from .git_specifier import GitSpecifier
 from .specifier import Specifier
 
 
+def _split_by_sequences(spec, *seqs):
+    result = [spec]
+    for seq in seqs:
+        result = sum([spec.split(seq) for spec in result], [])
+    return result
+
+
+REX_MAVEN_INTERVAL = re.compile(r'([\]\)])\,([\[\(])')
+
+
 class RangeSpecifier:
 
     def __init__(self, spec=None):
@@ -18,7 +29,15 @@ class RangeSpecifier:
             self.join_type = JoinTypes.AND
             return
 
+        # split `>2 || <1` on `>2` and `<1`
         subspecs = str(spec).split('||')
+        if len(subspecs) > 1:
+            self._specs = {type(self)(subspec) for subspec in subspecs}
+            self.join_type = JoinTypes.OR
+            return
+
+        # split `(,1),(2,)` on `(,1)` and `(2,)`
+        subspecs = REX_MAVEN_INTERVAL.sub(r'\1|\2', spec).split('|')
         if len(subspecs) > 1:
             self._specs = {type(self)(subspec) for subspec in subspecs}
             self.join_type = JoinTypes.OR
