@@ -157,7 +157,7 @@ def test_caret(specv, version, ok):
 
     ('1',     '1.0.0', True),
     ('1',     '1.0.1', True),
-    ('1',     '1.1.0', False),
+    ('1',     '1.1.0', True),
     ('1',     '2.0.0', False),
     ('1',     '0.9.0', False),
 ])

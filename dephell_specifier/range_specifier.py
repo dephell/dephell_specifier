@@ -145,10 +145,10 @@ class RangeSpecifier:
         elif constr[0] == '~':  # ~1.2.3 (or ~>1.2.3 for ruby) := >=1.2.3 <1.3.0
             # https://www.npmjs.com/package/semver#tilde-ranges-123-12-1
             # https://thoughtbot.com/blog/rubys-pessimistic-operator
-            # if len(version.release) == 1:
-            #     right = '{}.*'.format(version.release[0])
-            # else:
-            right = '.'.join([parts[0], parts[1], '*'])
+            if len(version.release) == 1:
+                right = '{}.*'.format(version.release[0])
+            else:
+                right = '.'.join([parts[0], parts[1], '*'])
 
         left = '.'.join(parts[:3])
         return {Specifier('>=' + left), Specifier('==' + right)}
