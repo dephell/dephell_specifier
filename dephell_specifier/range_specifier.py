@@ -76,7 +76,7 @@ class RangeSpecifier:
     @staticmethod
     def _split_specifier(spec) -> List[str]:
         if isinstance(spec, (list, tuple)):
-            return spec
+            return list(spec)
         spec = str(spec)
 
         # pep-style comma-separated
@@ -115,7 +115,7 @@ class RangeSpecifier:
         return constr
 
     @staticmethod
-    def _parse_star_and_operator(constr: str) -> Set[Specifier]:
+    def _parse_star_and_operator(constr: str) -> Specifier:
         if constr[:2] in {'<', '>', '>='}:
             return Specifier(constr.replace('.*', '.0'))
 
