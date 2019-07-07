@@ -24,4 +24,4 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.5"
-packaging = "*"
+packaging = ">=17.1"
