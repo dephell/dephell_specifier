@@ -163,8 +163,12 @@ class RangeSpecifier:
                 right = '{}.*'.format(version.release[0])
             else:
                 right = '.'.join([parts[0], parts[1], '*'])
+        else:
+            RuntimeError('unreachable')
 
         left = '.'.join(parts[:3])
+        if version.pre:
+            left += '.' + ''.join(map(str, version.pre))
         return {Specifier('>=' + left), Specifier('==' + right)}
 
     def attach_time(self, releases) -> bool:
