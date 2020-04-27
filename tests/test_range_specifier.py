@@ -33,6 +33,13 @@ def test_simple(operator, mask):
     ('2.7.1rc1',    '>=3.4',    False),
     ('2.7.15',      '>=3.4',    False),
     ('2.7.15rc1',   '>=3.4',    False),
+
+    ('0.0.0',       '>=1.0.0',  False),
+    ('1.2.3',       '>=1.0.0',  True),
+    ('1.2.3b1',     '>=1.0.0',  True),
+    ('1.0.1b1',     '>=1.0.0',  True),
+    ('1.0.0b1',     '>=1.0.0',  False),
+    ('1.0.0b1',    '>=1.0.0b1', True),
 ])
 def test_cases(version, spec, ok):
     assert (version in RangeSpecifier(spec)) is ok
@@ -117,6 +124,12 @@ def test_range(op1, op2, mask):
     ('1',     '1.1.0', True),
     ('1',     '2.0.0', False),
     ('1',     '0.9.0', False),
+
+    ('1.0.0b1', '1.0.0', True),
+    ('1.0.0b1', '1.0.0b1', True),
+    ('1.0.0b1', '1.0.0b2', True),
+    ('1.0.0b1', '1.0.1', True),
+    ('1.0.0b1', '1.1.0', True),
 ])
 def test_caret(specv, version, ok):
     spec = RangeSpecifier('^' + specv)
