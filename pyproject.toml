@@ -23,5 +23,5 @@ description = "Work with version specifiers."
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.5"
+python = ">=3.6"
 packaging = ">=17.1"
