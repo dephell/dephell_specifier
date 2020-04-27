@@ -1,6 +1,17 @@
 ## Dephell Specifier
 
+[![travis](https://travis-ci.org/dephell/dephell_specifier.svg?branch=master)](https://travis-ci.org/dephell/dephell_specifier)
+[![appveyor](https://ci.appveyor.com/api/projects/status/github/dephell/dephell_specifier?svg=true)](https://ci.appveyor.com/project/orsinium/dephell-specifier)
+[![MIT License](https://img.shields.io/pypi/l/dephell-specifier.svg)](https://github.com/dephell/dephell_specifier/blob/master/LICENSE)
+
 Work with version specifiers.
+
+Supported specifiers:
+
++ [PEP-440](https://www.python.org/dev/peps/pep-0440/).
++ [NPM SemVer](https://github.com/npm/node-semver).
++ [Maven](http://maven.apache.org/enforcer/enforcer-rules/versionRanges.html).
++ [RubyGems](https://guides.rubygems.org/patterns/)
 
 ## Installation
 
