@@ -18,9 +18,33 @@ command = "pytest -x tests/"
 [tool.poetry]
 name = "dephell_specifier"
 version = "0.2.1"
-authors = ["orsinium"]
+authors = ["Gram <mail@orsinium.dev>"]
 description = "Work with version specifiers."
 readme = "README.md"
+license = "MIT"
+repository = "https://github.com/dephell/dephell_venvs"
+keywords = ["dephell", "packaging", "versioning", "semver", "version", "maven"]
+# https://pypi.org/classifiers/
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Installation/Setup",
+
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: Unix",
+]
 
 [tool.poetry.dependencies]
 python = ">=3.6"
