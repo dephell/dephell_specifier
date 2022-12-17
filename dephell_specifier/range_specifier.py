@@ -14,6 +14,7 @@ REX_TRIM_OPERATOR = re.compile(r'([{}])\s+'.format(re.escape(OPERATOR_SYMBOLS)))
 
 
 class RangeSpecifier:
+    _specs: set
 
     def __init__(self, spec=None):
         if not spec:
@@ -118,7 +119,7 @@ class RangeSpecifier:
             return Specifier(constr.replace('.*', '.0'))
 
         version = parse(constr.lstrip(OPERATOR_SYMBOLS).rstrip('.*'))
-        parts = version.release[:-1] + (version.release[-1] + 1, )  # type: ignore
+        parts = version.release[:-1] + (version.release[-1] + 1, )
         return Specifier(constr[:2] + '.'.join(map(str, parts)))
 
     @staticmethod
@@ -216,7 +217,7 @@ class RangeSpecifier:
             elif left is None or python > left:
                 excluded.append(python)
         if right is not None:
-            right = (pythons + [None])[pythons.index(right) + 1]  # type: ignore
+            right = (pythons + [None])[pythons.index(right) + 1]
 
         # get excluded intervals
         if right is not None:

@@ -1,4 +1,3 @@
-
 class GitSpecifier:
     def __contains__(self, release):
         # check that this is GitRelease without imports
