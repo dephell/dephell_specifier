@@ -12,3 +12,5 @@ pip-wheel-metadata/
 
 setup.py
 README.rst
+/.venvs/
+/.task/
