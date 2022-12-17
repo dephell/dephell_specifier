@@ -2,7 +2,7 @@ from __future__ import annotations
 
 
 class GitSpecifier:
-    def __contains__(self, release):
+    def __contains__(self, release: object) -> bool:
         # check that this is GitRelease without imports
         return hasattr(release, 'commit')
 

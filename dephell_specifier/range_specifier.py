@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from typing import Iterable
 
 from packaging.specifiers import InvalidSpecifier
 from packaging.version import Version, parse
@@ -16,8 +17,9 @@ REX_TRIM_OPERATOR = re.compile(r'([{}])\s+'.format(re.escape(OPERATOR_SYMBOLS)))
 
 class RangeSpecifier:
     _specs: set
+    join_type: JoinTypes
 
-    def __init__(self, spec=None):
+    def __init__(self, spec: object | None = None) -> None:
         if not spec:
             self._specs = set()
             self.join_type = JoinTypes.AND
@@ -42,7 +44,7 @@ class RangeSpecifier:
         return
 
     @classmethod
-    def _parse(cls, spec) -> set[Specifier]:
+    def _parse(cls, spec: object) -> set[Specifier]:
         spec = cls._split_specifier(spec)
         result = set()
         for constr in spec:
@@ -74,7 +76,7 @@ class RangeSpecifier:
         return result
 
     @staticmethod
-    def _split_specifier(spec) -> list[str]:
+    def _split_specifier(spec: object) -> list[str]:
         if isinstance(spec, (list, tuple)):
             return list(spec)
         spec = str(spec)
@@ -169,7 +171,7 @@ class RangeSpecifier:
             left += '.' + ''.join(map(str, version.pre))
         return {Specifier('>=' + left), Specifier('==' + right)}
 
-    def attach_time(self, releases) -> bool:
+    def attach_time(self, releases: Iterable) -> bool:
         """Attach time to all specifiers if possible
         """
         ok = False
@@ -247,27 +249,27 @@ class RangeSpecifier:
 
     # magic methods
 
-    def __add__(self, other):
+    def __add__(self, other: object) -> RangeSpecifier:
         new = self.copy()
         attached = new._attach(other)
         if attached:
             return new
         return NotImplemented
 
-    def __radd__(self, other):
+    def __radd__(self, other: object) -> RangeSpecifier:
         new = self.copy()
         attached = new._attach(other)
         if attached:
             return new
         return NotImplemented
 
-    def __iadd__(self, other):
+    def __iadd__(self, other: object) -> RangeSpecifier:
         attached = self._attach(other)
         if attached:
             return self
         return NotImplemented
 
-    def _attach(self, other) -> bool:
+    def _attach(self, other: object) -> bool:
         if isinstance(other, GitSpecifier):
             self._specs.add(other)
             return True
@@ -316,34 +318,34 @@ class RangeSpecifier:
         self._specs = new_specs
         return True
 
-    def __contains__(self, release) -> bool:
+    def __contains__(self, release: object) -> bool:
         rule = all if self.join_type == JoinTypes.AND else any
         return rule((release in specifier) for specifier in self._specs)
 
-    def __str__(self):
+    def __str__(self) -> str:
         if not self._specs:
             return ''
         sep = ',' if self.join_type == JoinTypes.AND else ' || '
         return sep.join(sorted(map(str, self._specs)))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '{name}({spec})'.format(
             name=self.__class__.__name__,
             spec=str(self),
         )
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return bool(self._specs)
 
-    def __lt__(self, other):
+    def __lt__(self, other: object) -> bool:
         if not isinstance(other, type(self)):
             return False
         return str(self) < str(other)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, type(self)):
             return False
         return str(self) == str(other)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(str(self))

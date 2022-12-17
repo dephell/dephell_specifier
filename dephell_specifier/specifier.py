@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import operator
-from typing import Any, Callable
+from typing import Any, Callable, Iterable
 
 from packaging import specifiers
 from packaging.version import Version, parse
@@ -9,7 +9,7 @@ from packaging.version import Version, parse
 from .utils import cached_property
 
 
-OPERATIONS = {
+OPERATIONS: dict[str, Callable[[Any, Any], bool]] = {
     '==': operator.eq,
     '!=': operator.ne,
 
@@ -20,7 +20,7 @@ OPERATIONS = {
     '>': operator.gt,
 }
 
-OPERATORS_MERGE = {
+OPERATORS_MERGE: dict[frozenset[str], str | None] = {
     # different
     frozenset({'>', '<'}):      None,
     frozenset({'>=', '<='}):    '==',
@@ -47,13 +47,13 @@ OPERATORS_MERGE = {
 class Specifier:
     time = None
 
-    def __init__(self, constr):
+    def __init__(self, constr: object) -> None:
         try:
             self._spec = specifiers.Specifier(str(constr), prereleases=True)
         except specifiers.InvalidSpecifier:
             raise specifiers.InvalidSpecifier(constr)
 
-    def attach_time(self, releases) -> bool:
+    def attach_time(self, releases: Iterable) -> bool:
         for release in releases:
             if release.time.year != 1970:
                 if str(release.version) == self._spec.version:
@@ -61,7 +61,7 @@ class Specifier:
                     return True
         return False
 
-    def _check_version(self, version) -> bool:
+    def _check_version(self, version: Version | str) -> bool:
         """
         https://www.python.org/dev/peps/pep-0440/
         """
@@ -119,7 +119,7 @@ class Specifier:
             spec=str(self._spec),
         )
 
-    def __add__(self, other):
+    def __add__(self, other: object):
         if not isinstance(other, type(self)):
             return NotImplemented
 
@@ -150,10 +150,14 @@ class Specifier:
 
         return NotImplemented
 
-    def __lt__(self, other) -> bool:
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, type(self)):
+            return NotImplemented
         return self.version < other.version
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, type(self)):
+            return NotImplemented
         return self.version == other.version and self.operator == other.operator
 
     def __hash__(self) -> int:
