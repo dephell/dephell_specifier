@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import operator
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 from packaging import specifiers
 from packaging.version import Version, parse
@@ -81,7 +81,7 @@ class Specifier:
         return self._spec.operator
 
     @property
-    def operation(self) -> Optional[Callable[[Any, Any], bool]]:
+    def operation(self) -> Callable[[Any, Any], bool] | None:
         return OPERATIONS.get(self._spec.operator)
 
     @property

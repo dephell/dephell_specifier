@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-from typing import List, Set
 
 from packaging.specifiers import InvalidSpecifier
 from packaging.version import Version, parse
@@ -43,7 +42,7 @@ class RangeSpecifier:
         return
 
     @classmethod
-    def _parse(cls, spec) -> Set[Specifier]:
+    def _parse(cls, spec) -> set[Specifier]:
         spec = cls._split_specifier(spec)
         result = set()
         for constr in spec:
@@ -75,7 +74,7 @@ class RangeSpecifier:
         return result
 
     @staticmethod
-    def _split_specifier(spec) -> List[str]:
+    def _split_specifier(spec) -> list[str]:
         if isinstance(spec, (list, tuple)):
             return list(spec)
         spec = str(spec)
@@ -125,7 +124,7 @@ class RangeSpecifier:
         return Specifier(constr[:2] + '.'.join(map(str, parts)))
 
     @staticmethod
-    def _parse_maven(constr: str) -> Set[Specifier]:
+    def _parse_maven(constr: str) -> set[Specifier]:
         if constr in '[]()':
             return set()
         if constr[0] == '[' and constr[-1] == ']':
@@ -141,7 +140,7 @@ class RangeSpecifier:
         raise ValueError('non maven constraint: {}'.format(constr))
 
     @staticmethod
-    def _parse_npm(constr: str) -> Set[Specifier]:
+    def _parse_npm(constr: str) -> set[Specifier]:
         version = parse(constr.lstrip(OPERATOR_SYMBOLS).replace('.*', '.0'))
         parts = version.release + (0, 0)
         parts = tuple(map(str, parts))
@@ -190,13 +189,13 @@ class RangeSpecifier:
             marker = '(' + marker + ')'
         return marker
 
-    def copy(self) -> 'RangeSpecifier':
+    def copy(self) -> RangeSpecifier:
         new = type(self)()
         new._specs = self._specs.copy()
         new.join_type = self.join_type
         return new
 
-    def peppify(self) -> 'RangeSpecifier':
+    def peppify(self) -> RangeSpecifier:
         """Returns python specifier without `||`
         """
         if self.join_type == JoinTypes.AND:
