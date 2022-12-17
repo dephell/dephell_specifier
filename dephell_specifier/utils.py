@@ -1,5 +1,8 @@
 # https://github.com/bottlepy/bottle/commit/fa7733e075da0d790d809aa3d2f53071897e6f76
 # https://github.com/pydanny/cached-property/blob/master/cached_property.py
+from __future__ import annotations
+
+
 class cached_property:  # noqa: N801
     """
     A property that is only computed once per instance and then replaces itself
