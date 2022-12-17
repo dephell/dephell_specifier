@@ -53,3 +53,16 @@ lint = [
 
 [tool.flit.module]
 name = "dephell_specifier"
+
+[tool.mypy]
+files = ["dephell_specifier", "tests"]
+python_version = 3.8
+ignore_missing_imports = true
+allow_redefinition = true
+# follow_imports = "silent"
+show_error_codes = true
+check_untyped_defs = false
+# no_implicit_optional = true
+# strict_equality = true
+# warn_redundant_casts = true
+# warn_unused_ignores = true

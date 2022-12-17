@@ -11,10 +11,6 @@ from dephell_specifier import RangeSpecifier
     ('1.0.0 - 2.0.0', '1.2.3'),
     ('^1.2.3+build', '1.2.3'),
     ('^1.2.3+build', '1.3.0'),
-    ('1.2.3-pre+asdf - 2.4.3-pre+asdf', '1.2.3'),
-    ('1.2.3-pre+asdf - 2.4.3-pre+asdf', '1.2.3-pre.2'),
-    ('1.2.3-pre+asdf - 2.4.3-pre+asdf', '2.4.3-alpha'),
-    ('1.2.3+asdf - 2.4.3+asdf', '1.2.3'),
     ('1.0.0', '1.0.0'),
 
     # open ranges
@@ -102,7 +98,6 @@ from dephell_specifier import RangeSpecifier
     ('^0.1', '0.1.2'),
     ('^0.0.1', '0.0.1'),
     ('^1.2', '1.4.2'),
-    ('^1.2 ^1', '1.4.2'),
     # ('^1.2.3-alpha', '1.2.3-pre'),
     # ('^1.2.0-alpha', '1.2.0-pre'),
     # ('^0.0.1-alpha', '0.0.1-beta'),
@@ -131,8 +126,6 @@ def test_included(spec, version):
     # ['>1.2', '1.3.0-beta'],
     # ['<=1.2.3', '1.2.3-beta'],
     ['^1.2.3', '1.2.3-beta'],
-    ['=0.7.x', '0.7.0-asdf'],
-    ['>=0.7.x', '0.7.0-asdf'],
 
     ['1.0.0', '1.0.1'],
     ['>=1.0.0', '0.0.0'],

@@ -1,10 +1,10 @@
 # built-in
 import operator
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, Optional
 
 # external
 from packaging import specifiers
-from packaging.version import LegacyVersion, Version, parse
+from packaging.version import Version, parse
 
 # app
 from .utils import cached_property
@@ -49,16 +49,9 @@ class Specifier:
     time = None
 
     def __init__(self, constr):
-        self._spec = None
         try:
-            self._spec = self._legacy = specifiers.LegacySpecifier(str(constr))
+            self._spec = specifiers.Specifier(str(constr), prereleases=True)
         except specifiers.InvalidSpecifier:
-            self._legacy = None
-        try:
-            self._spec = self._semver = specifiers.Specifier(str(constr), prereleases=True)
-        except specifiers.InvalidSpecifier:
-            self._semver = None
-        if self._spec is None:
             raise specifiers.InvalidSpecifier(constr)
 
     def attach_time(self, releases) -> bool:
@@ -75,19 +68,7 @@ class Specifier:
         """
         if isinstance(version, str):
             version = parse(version)
-
-        # if both semver
-        if self._semver is not None:
-            if not isinstance(version, LegacyVersion):
-                return version in self._semver
-
-        # otherwise compare both as legacy
-        if self._legacy is not None:
-            version = LegacyVersion(str(version))
-            return version in self._legacy
-
-        # lovely case, isn't it?
-        return False
+        return version in self._spec
 
     def to_marker(self, name: str, wrap: bool = False) -> str:
         return '{name} {operator} "{version}"'.format(
@@ -109,7 +90,7 @@ class Specifier:
         return self._spec.version
 
     @cached_property
-    def version(self) -> Union[Version, LegacyVersion]:
+    def version(self) -> Version:
         return parse(self.raw_version)
 
     # magic methods

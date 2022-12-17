@@ -73,7 +73,7 @@ tasks:
     deps:
       - install:lint
     cmds:
-      - "{{.LINT_PYTHON}} -m mypy --ignore-missing-imports --allow-redefinition dephell_specifier {{.CLI_ARGS}}"
+      - "{{.LINT_PYTHON}} -m mypy {{.CLI_ARGS}}"
   unify:
     desc: "convert double quotes to single ones"
     deps:

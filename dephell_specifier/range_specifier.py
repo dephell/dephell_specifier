@@ -3,7 +3,7 @@ from typing import Set, List
 
 # external
 from packaging.specifiers import InvalidSpecifier
-from packaging.version import LegacyVersion, parse, Version
+from packaging.version import parse, Version
 
 # app
 from .constants import PYTHONS, JoinTypes, OPERATOR_SYMBOLS
@@ -142,8 +142,6 @@ class RangeSpecifier:
     @staticmethod
     def _parse_npm(constr: str) -> Set[Specifier]:
         version = parse(constr.lstrip(OPERATOR_SYMBOLS).replace('.*', '.0'))
-        if isinstance(version, LegacyVersion):
-            raise InvalidSpecifier(constr)
         parts = version.release + (0, 0)
         parts = tuple(map(str, parts))
 
