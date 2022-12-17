@@ -1,12 +1,10 @@
 import re
-from typing import Set, List
+from typing import List, Set
 
-# external
 from packaging.specifiers import InvalidSpecifier
-from packaging.version import parse, Version
+from packaging.version import Version, parse
 
-# app
-from .constants import PYTHONS, JoinTypes, OPERATOR_SYMBOLS
+from .constants import OPERATOR_SYMBOLS, PYTHONS, JoinTypes
 from .git_specifier import GitSpecifier
 from .specifier import Specifier
 

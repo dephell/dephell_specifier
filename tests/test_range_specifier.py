@@ -1,7 +1,5 @@
-# external
 import pytest
 
-# project
 from dephell_specifier import RangeSpecifier
 
 

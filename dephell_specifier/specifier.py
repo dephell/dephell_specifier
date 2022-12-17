@@ -1,12 +1,9 @@
-# built-in
 import operator
 from typing import Any, Callable, Optional
 
-# external
 from packaging import specifiers
 from packaging.version import Version, parse
 
-# app
 from .utils import cached_property
 
 

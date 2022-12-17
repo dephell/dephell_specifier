@@ -66,3 +66,8 @@ check_untyped_defs = false
 # strict_equality = true
 # warn_redundant_casts = true
 # warn_unused_ignores = true
+
+[tool.isort]
+profile = "django"
+lines_after_imports = 2
+skip = ".venvs/"
